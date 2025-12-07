@@ -1,82 +1,76 @@
 package prng_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/GeekchanskiY/pet-project/pkg/prng"
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_generator_Generate(t *testing.T) {
-	type fields struct {
-		seed string
-	}
-	type args struct {
-		pos int64
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    uint8
-		wantErr bool
-	}{
-		{
-			name:    "test zero value 1",
-			fields:  fields{seed: "hello world"},
-			args:    args{pos: 0},
-			want:    155,
-			wantErr: false,
-		},
-		{
-			name:    "test zero value 2",
-			fields:  fields{seed: "hello world 2"},
-			args:    args{pos: 0},
-			want:    185,
-			wantErr: false,
-		},
-		{
-			name:    "test zero value 3",
-			fields:  fields{seed: "amogus"},
-			args:    args{pos: 0},
-			want:    180,
-			wantErr: false,
-		},
-		{
-			name:    "test first value 1",
-			fields:  fields{seed: "amogus"},
-			args:    args{pos: 1},
-			want:    48,
-			wantErr: false,
-		},
-		{
-			name:    "test first value 2",
-			fields:  fields{seed: "hello world"},
-			args:    args{pos: 1},
-			want:    2,
-			wantErr: false,
-		},
-		{
-			name:    "test first value 3",
-			fields:  fields{seed: "hello world 2"},
-			args:    args{pos: 1},
-			want:    71,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			g, err := prng.NewGenerator(tt.fields.seed)
-			if err != nil && !tt.wantErr {
-				t.Fatalf("NewGenerator() error = %v, wantErr %v", err, tt.wantErr)
-			}
+func Test_Generate(t *testing.T) {
+	t.Run("default usage", func(t *testing.T) {
+		generator, err := prng.NewGenerator("sample seed")
+		if err != nil {
+			t.Fatal(err)
+		}
 
-			if tt.wantErr {
-				return
-			}
+		generated := generator.Generate(0)
+		assert.Equal(t, uint8(66), generated)
 
-			if got := g.Generate(tt.args.pos); got != tt.want {
-				t.Errorf("Generate() = %v, want %v", got, tt.want)
-			}
-		})
+		generated = generator.Generate(1)
+		assert.Equal(t, uint8(71), generated)
+
+		generated = generator.Generate(2)
+		assert.Equal(t, uint8(71), generated)
+
+		generated = generator.Generate(3)
+		assert.Equal(t, uint8(82), generated)
+
+		generated = generator.Generate(2)
+		assert.Equal(t, uint8(71), generated)
+
+		// duplicate generator with same seed
+		generator, err = prng.NewGenerator("sample seed")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		generated = generator.Generate(0)
+		assert.Equal(t, uint8(66), generated)
+
+		generated = generator.Generate(1)
+		assert.Equal(t, uint8(71), generated)
+
+		generated = generator.Generate(2)
+		assert.Equal(t, uint8(71), generated)
+
+		generated = generator.Generate(3)
+		assert.Equal(t, uint8(82), generated)
+
+		generated = generator.Generate(2)
+		assert.Equal(t, uint8(71), generated)
+	})
+}
+
+func Benchmark_Generate(b *testing.B) {
+	generator, err := prng.NewGenerator("sample seed xcsfafdsgasd")
+	if err != nil {
+		b.Fatal(err)
 	}
+
+	values := make(map[uint8]uint64, b.N)
+	for i := 0; i <= 255; i++ {
+		values[uint8(i)] = 0
+	}
+
+	for i := int64(0); i < int64(b.N); i++ {
+		value := generator.Generate(i)
+		values[value] = values[value] + 1
+	}
+
+	fmt.Println(b.N)
+	fmt.Println("First: ", generator.Generate(0))
+	fmt.Println("Second: ", generator.Generate(1))
+	fmt.Println(values)
 }

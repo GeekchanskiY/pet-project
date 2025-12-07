@@ -24,6 +24,22 @@ func NewGenerator(seed string) (PseudoRandomNumberGenerator, error) {
 
 	mu := &sync.Mutex{}
 
+	zeroValue := seedBytes[0]
+
+	for _, v := range seedBytes[1:] {
+		zeroValue += v
+	}
+
+	computedValues[0] = zeroValue
+
+	fistValue := seedBytes[0]
+
+	for _, v := range seedBytes[1:] {
+		fistValue += zeroValue % v
+	}
+
+	computedValues[1] = fistValue
+
 	return generator{seed: seedBytes, computedValues: computedValues, mu: mu}, nil
 }
 
@@ -33,46 +49,27 @@ func (g generator) Generate(pos int64) uint8 {
 	}
 
 	g.mu.Lock()
-	preComputedValue, exists := g.computedValues[pos]
+	if val, exists := g.computedValues[pos]; exists {
+		g.mu.Unlock()
+		return val
+	}
 	g.mu.Unlock()
-	if exists {
-		return preComputedValue
-	}
 
-	if pos == 0 {
-		res := g.seed[0]
+	xPrev := g.computedValues[0]
+	xCurr := g.computedValues[1]
 
-		for i := 1; i < len(g.seed); i++ {
-			res += g.seed[i]
-		}
+	for i := int64(2); i <= pos; i++ {
+		increment := g.seed[xPrev%32]
+		multiply := g.seed[(xPrev+xCurr+1)%32] + increment
 
-		g.mu.Lock()
-		g.computedValues[pos] = res
-		g.mu.Unlock()
-
-		return res
-	}
-
-	if pos == 1 {
-		zeroValue := byte(g.Generate(0))
-		res := g.seed[0]
-
-		for i := 1; i < len(g.seed); i++ {
-			res += (zeroValue >> i) % g.seed[i]
-		}
+		xNext := (uint16(multiply)*uint16(xCurr) + uint16(increment)) % uint16(255)
 
 		g.mu.Lock()
-		g.computedValues[pos] = res
+		g.computedValues[i] = uint8(xNext)
 		g.mu.Unlock()
 
-		return res
+		xPrev, xCurr = xCurr, uint8(xNext)
 	}
 
-	// Xn+1 = (aXn + c) mod m
-	// m, 0 < m  - modulus
-	// a, 0 < a < m  - multiplier
-	// c, 0 ? c < m  - increment
-	// x0, 0 ? x0 < m  - the seed or start value
-
-	return 0
+	return xCurr
 }
