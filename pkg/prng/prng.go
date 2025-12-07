@@ -40,29 +40,30 @@ func NewGenerator(seed string) (PseudoRandomNumberGenerator, error) {
 
 	computedValues[1] = fistValue
 
-	return generator{seed: seedBytes, computedValues: computedValues, mu: mu}, nil
+	return &generator{seed: seedBytes, computedValues: computedValues, mu: mu}, nil
 }
 
-func (g generator) Generate(pos int64) uint8 {
+func (g *generator) Generate(pos int64) uint8 {
 	if pos < 0 {
 		pos = -pos
 	}
 
 	g.mu.Lock()
-	if val, exists := g.computedValues[pos]; exists {
-		g.mu.Unlock()
+	val, exists := g.computedValues[pos]
+	g.mu.Unlock()
+
+	if exists {
 		return val
 	}
-	g.mu.Unlock()
 
 	xPrev := g.computedValues[0]
 	xCurr := g.computedValues[1]
 
 	for i := int64(2); i <= pos; i++ {
 		increment := g.seed[xPrev%32]
-		multiply := g.seed[(xPrev+xCurr+1)%32] + increment
+		multiply := g.seed[(xPrev+xCurr+1)%32]
 
-		xNext := (uint16(multiply)*uint16(xCurr) + uint16(increment)) % uint16(255)
+		xNext := (uint16(multiply)*uint16(xCurr) + uint16(increment) + uint16(i)) % uint16(256)
 
 		g.mu.Lock()
 		g.computedValues[i] = uint8(xNext)
