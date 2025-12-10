@@ -6,7 +6,7 @@ type Human interface {
 	GetName() string
 	GetSurname() string
 	GetAge() uint8
-	GetGender() bool
+	GetGender() Gender
 	IsAlive() bool
 	Die()
 }
@@ -15,7 +15,7 @@ type human struct {
 	Name    string
 	Surname string
 	Age     uint8
-	Gender  bool
+	Gender  Gender
 	Alive   bool
 	BornAt  time.Time
 	DiedAt  time.Time
@@ -23,7 +23,7 @@ type human struct {
 	Hunger int
 }
 
-func New(name string, surname string, age uint8, gender bool) Human {
+func New(name string, surname string, age uint8, gender Gender) Human {
 	return &human{
 		Name:    name,
 		Surname: surname,
@@ -46,7 +46,7 @@ func (h *human) GetAge() uint8 {
 	return h.Age
 }
 
-func (h *human) GetGender() bool {
+func (h *human) GetGender() Gender {
 	return h.Gender
 }
 
