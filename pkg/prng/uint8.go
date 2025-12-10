@@ -15,7 +15,7 @@ type uint8Generator struct {
 	seed           []byte
 }
 
-func NewUint8Generator(seed string) Uint8 {
+func NewUint8(seed string) Uint8 {
 	h := sha256.New()
 	h.Write([]byte(seed))
 	seedBytes := h.Sum(nil)

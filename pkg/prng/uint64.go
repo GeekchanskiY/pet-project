@@ -15,7 +15,7 @@ type uint64Generator struct {
 	seed           []byte
 }
 
-func NewGenerator(seed string) Uint64 {
+func NewUint64(seed string) Uint64 {
 	h := sha256.New()
 	h.Write([]byte(seed))
 	seedBytes := h.Sum(nil)
