@@ -52,13 +52,11 @@ func (g *humanGenerator) New(number uint64) Human {
 		(time.Duration(indexNum%365) * 24 * time.Hour)) // make date of birth random
 
 	return &human{
-		Name:    name,
-		Surname: surname,
-		Age:     uint8(age),
-		Gender:  gender,
-		Alive:   false,
-		BornAt:  bornAt,
-		DiedAt:  time.Time{},
-		Hunger:  100,
+		name:    name,
+		surname: surname,
+		age:     uint8(age),
+		gender:  gender,
+		bornAt:  bornAt,
+		diedAt:  time.Time{},
 	}
 }
