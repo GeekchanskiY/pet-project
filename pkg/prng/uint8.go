@@ -5,17 +5,17 @@ import (
 	"sync"
 )
 
-type PseudoRandomNumberGenerator interface {
+type Uint8 interface {
 	Generate(int64) uint8
 }
 
-type generator struct {
+type uint8Generator struct {
 	mu             *sync.Mutex
 	computedValues map[int64]uint8
 	seed           []byte
 }
 
-func NewGenerator(seed string) (PseudoRandomNumberGenerator, error) {
+func NewUint8Generator(seed string) Uint8 {
 	h := sha256.New()
 	h.Write([]byte(seed))
 	seedBytes := h.Sum(nil)
@@ -40,10 +40,10 @@ func NewGenerator(seed string) (PseudoRandomNumberGenerator, error) {
 
 	computedValues[1] = fistValue
 
-	return &generator{seed: seedBytes, computedValues: computedValues, mu: mu}, nil
+	return &uint8Generator{seed: seedBytes, computedValues: computedValues, mu: mu}
 }
 
-func (g *generator) Generate(pos int64) uint8 {
+func (g *uint8Generator) Generate(pos int64) uint8 {
 	if pos < 0 {
 		pos = -pos
 	}

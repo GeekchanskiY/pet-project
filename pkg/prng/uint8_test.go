@@ -1,6 +1,7 @@
 package prng_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/GeekchanskiY/pet-project/pkg/prng"
@@ -8,12 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_Generate(t *testing.T) {
+func Test_GenerateUint8(t *testing.T) {
 	t.Run("default usage", func(t *testing.T) {
-		generator, err := prng.NewGenerator("sample seed")
-		if err != nil {
-			t.Fatal(err)
-		}
+		generator := prng.NewUint8Generator("sample seed")
 
 		generated := generator.Generate(0)
 		assert.Equal(t, uint8(66), generated)
@@ -31,10 +29,7 @@ func Test_Generate(t *testing.T) {
 		assert.Equal(t, uint8(170), generated, "already computed value must remain same")
 
 		// duplicate generator with same seed
-		generator, err = prng.NewGenerator("sample seed")
-		if err != nil {
-			t.Fatal(err)
-		}
+		generator = prng.NewUint8Generator("sample seed")
 
 		generated = generator.Generate(0)
 		assert.Equal(t, uint8(66), generated,
@@ -57,12 +52,9 @@ func Test_Generate(t *testing.T) {
 	})
 
 	t.Run("values 'randomness'", func(t *testing.T) {
-		generator, err := prng.NewGenerator("sample seed")
-		if err != nil {
-			t.Fatal(err)
-		}
+		generator := prng.NewUint8Generator("sample seed")
 
-		values := make(map[uint8]uint64, 1000)
+		values := make(map[uint8]int, 1000)
 		for i := 0; i <= 255; i++ {
 			values[uint8(i)] = 0
 		}
@@ -72,7 +64,7 @@ func Test_Generate(t *testing.T) {
 			values[res] = values[res] + 1
 		}
 
-		zeroValues := make([]uint8, 0, 255)
+		zeroValues := make([]uint8, 0, 256)
 		for num, amount := range values {
 			if amount == 0 {
 				zeroValues = append(zeroValues, num)
@@ -84,23 +76,25 @@ func Test_Generate(t *testing.T) {
 }
 
 func Benchmark_Generate(b *testing.B) {
-	generator, err := prng.NewGenerator("sample seed xcsfafdsgasd")
-	if err != nil {
-		b.Fatal(err)
+	generator := prng.NewGenerator("sample seed xcsfafdsgasd")
+
+	values := make(map[uint64]uint64, b.N)
+	for i := 0; i <= 255; i++ {
+		values[uint64(i)] = 0
 	}
 
-	//values := make(map[uint8]uint64, b.N)
-	//for i := 0; i <= 255; i++ {
-	//	values[uint8(i)] = 0
-	//}
+	for i := uint64(0); i < uint64(b.N); i++ {
+		value := generator.Generate(i)
+		_, ok := values[value]
+		if !ok {
+			values[value] = 0
+		}
 
-	for i := int64(0); i < int64(b.N); i++ {
-		generator.Generate(i)
-		// values[value] = values[value] + 1
+		values[value] = values[value] + 1
 	}
 
-	//fmt.Println(b.N)
-	//fmt.Println("First: ", generator.Generate(0))
-	//fmt.Println("Second: ", generator.Generate(1))
-	//fmt.Println(values)
+	fmt.Println(b.N)
+	fmt.Println("First: ", generator.Generate(0))
+	fmt.Println("Second: ", generator.Generate(1))
+	fmt.Println(values)
 }
