@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"github.com/GeekchanskiY/pet-project/pkg/world"
 )
 
 func main() {
-	fmt.Println(0x42)
+	newWorld := world.NewWorld("geekchanskiy")
+	newWorld.Live()
 }
