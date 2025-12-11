@@ -1,15 +1,20 @@
 package humans
 
 import (
+	_ "embed"
+	"strings"
 	"time"
 
 	"github.com/GeekchanskiY/pet-project/pkg/prng"
 )
 
 var (
-	surnames    = []string{"Smith", "Johnson", "Williams", "Kowalski", "Rodriguez", "Ivanov"}
-	maleNames   = []string{"Smith", "John", "William", "Igor", "Dmitry"}
-	femaleNames = []string{"Anna", "Anastasia", "Victoria", "Olga"}
+	//go:embed datasets/surnames.data
+	surnamesRaw string
+	//go:embed datasets/male_names.data
+	maleNamesRaw string
+	//go:embed datasets/female_names.data
+	femaleNamesRaw string
 )
 
 type Generator interface {
@@ -17,11 +22,19 @@ type Generator interface {
 }
 
 type humanGenerator struct {
+	surnames    []string
+	maleNames   []string
+	femaleNames []string
+
 	generator prng.Uint64
 }
 
 func NewGenerator(generator prng.Uint64) Generator {
 	return &humanGenerator{
+		surnames:    strings.Split(surnamesRaw, "\n"),
+		maleNames:   strings.Split(maleNamesRaw, "\n"),
+		femaleNames: strings.Split(femaleNamesRaw, "\n"),
+
 		generator: generator,
 	}
 }
@@ -31,16 +44,16 @@ func (g *humanGenerator) New(number uint64) Human {
 
 	indexNum := int(humanCode % 1000)
 
-	surname := surnames[indexNum%len(surnames)]
+	surname := g.surnames[indexNum%len(g.surnames)]
 
 	gender := Male
 	if indexNum%10 > 4 {
 		gender = Female
 	}
 
-	nameSet := maleNames
+	nameSet := g.maleNames
 	if gender == Female {
-		nameSet = femaleNames
+		nameSet = g.femaleNames
 	}
 
 	name := nameSet[indexNum%len(nameSet)]
