@@ -46,13 +46,13 @@ func (g *humanGenerator) New(number uint64) Human {
 
 	surname := g.surnames[indexNum%len(g.surnames)]
 
-	gender := Male
+	gender := GenderMale
 	if indexNum%10 > 4 {
-		gender = Female
+		gender = GenderFemale
 	}
 
 	nameSet := g.maleNames
-	if gender == Female {
+	if gender == GenderFemale {
 		nameSet = g.femaleNames
 	}
 
